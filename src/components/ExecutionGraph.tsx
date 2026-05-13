@@ -12,51 +12,33 @@ export function ExecutionGraph() {
   const layout = useGraphLayout(storeState);
   const { blockedNodes } = computeTopologicalState(storeState);
 
-  // Set up a mock stream for demonstration purposes
   useEffect(() => {
     let active = true;
 
-    const mockEvents: AgentEvent[] = [
-      {
-        type: 'TASK_SPAWNED',
-        node: { id: '1', type: 'TASK', status: 'COMPLETED', name: 'Initialize Research' },
-        dependencies: [],
-      },
-      {
-        type: 'TASK_SPAWNED',
-        node: { id: '2', type: 'TASK', status: 'RUNNING', name: 'Gather Data Sources' },
-        dependencies: ['1'],
-      },
-      {
-        type: 'TASK_SPAWNED',
-        node: { id: '3', type: 'TOOL_CALL', status: 'PENDING', name: 'Search Web API' },
-        dependencies: ['2'],
-      },
-      {
-        type: 'TASK_SPAWNED',
-        node: { id: '4', type: 'APPROVAL', status: 'LOCKED', name: 'Review Search Query', payload: { query: 'NextJS Architecture' } },
-        dependencies: ['2'],
-      },
-      {
-        type: 'TASK_SPAWNED',
-        node: { id: '5', type: 'TASK', status: 'PENDING', name: 'Summarize Results' },
-        dependencies: ['3', '4'],
-      }
-    ];
+    const eventSource = new EventSource('/api/events');
 
-    const dispatchMockEvents = async () => {
-      for (let i = 0; i < mockEvents.length; i++) {
-        if (!active) break;
-        await new Promise(resolve => setTimeout(resolve, i === 0 ? 0 : 1500));
-        if (!active) break;
-        storeState.dispatch(mockEvents[i]);
+    eventSource.onmessage = (event) => {
+      if (!active) return;
+      try {
+        if (event.data === '[DONE]') {
+          eventSource.close();
+          return;
+        }
+        const parsedEvent: AgentEvent = JSON.parse(event.data);
+        storeState.dispatch(parsedEvent);
+      } catch (err) {
+        console.error('Failed to parse SSE event data', err);
       }
     };
 
-    dispatchMockEvents();
+    eventSource.onerror = (error) => {
+      console.error('SSE connection error:', error);
+      eventSource.close();
+    };
 
     return () => {
       active = false;
+      eventSource.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount

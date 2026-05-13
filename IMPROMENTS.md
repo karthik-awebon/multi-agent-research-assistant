@@ -57,7 +57,7 @@
 
 Summary Checklist for Next Steps:
 
-1.  [ ] Replace mock useEffect with a real EventSource (SSE) listener.
+1.  [x] Replace mock useEffect with a real EventSource (SSE) listener.
 2.  [ ] Add a persistence layer (Redis/Postgres) to save execution history.
 3.  [ ] Implement a "Details Panel" for nodes using a Slide-over UI.
 4.  [ ] Add Pan/Zoom capabilities to the <ExecutionGraph />.
