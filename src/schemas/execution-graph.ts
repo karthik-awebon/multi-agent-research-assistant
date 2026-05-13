@@ -1,5 +1,9 @@
 import { z } from 'zod';
 
+/**
+ * Schema for an individual execution node.
+ * Validates the node's identity, type, and lifecycle status.
+ */
 export const ExecutionNodeSchema = z.object({
   id: z.string().uuid(),
   type: z.enum(['TASK', 'TOOL_CALL', 'APPROVAL']),
@@ -10,19 +14,20 @@ export const ExecutionNodeSchema = z.object({
   error: z.string().optional(),
 });
 
-export type ExecutionNode = z.infer<typeof ExecutionNodeSchema>;
-
+/**
+ * Schema for a directional edge between nodes.
+ */
 export const ExecutionEdgeSchema = z.object({
   id: z.string(),
   source: z.string().uuid(),
   target: z.string().uuid(),
 });
 
-export type ExecutionEdge = z.infer<typeof ExecutionEdgeSchema>;
-
+/**
+ * Schema for the entire graph state.
+ */
 export const ExecutionGraphStateSchema = z.object({
   nodes: z.record(z.string(), ExecutionNodeSchema),
   edges: z.record(z.string(), ExecutionEdgeSchema),
 });
 
-export type ExecutionGraphState = z.infer<typeof ExecutionGraphStateSchema>;

@@ -1,4 +1,5 @@
-import { AgentEvent } from '@/schemas/agent-events';
+import { AgentEvent } from '@/types';
+import { APP_CONFIG } from '@/constants';
 
 const mockEvents: AgentEvent[] = [
   {
@@ -36,7 +37,7 @@ export async function GET() {
       for (let i = 0; i < mockEvents.length; i++) {
         // Delay between events (1.5s), except for the first one
         if (i !== 0) {
-          await new Promise((resolve) => setTimeout(resolve, 1500));
+          await new Promise((resolve) => setTimeout(resolve, APP_CONFIG.MOCK_DELAY));
         }
 
         const event = mockEvents[i];

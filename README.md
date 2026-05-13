@@ -1,60 +1,69 @@
 # Multi-Agent Research Assistant Architecture
 
-A high-performance research assistant powered by a multi-agent system, built with React 19 and Next.js 16.
+A real-time execution engine and visualization dashboard for multi-agent systems. This platform enables monitoring of complex agent task trees, tool executions, and Human-in-the-loop (HITL) interactions.
+
+## Key Features
+
+- **Real-time Visualization**: Dynamic graph rendering of agent execution flows using Dagre and SVG.
+- **Topological Dependency Management**: Automatic blocking/unblocking of nodes based on their dependencies.
+- **Human-in-the-loop (HITL)**: Specialized "Approval Fences" that pause execution until manual intervention is provided.
+- **Event-Driven Architecture**: Real-time state updates powered by Server-Sent Events (SSE).
+- **Comprehensive Logging**: Full observability into store transitions, layout computation, and SSE streams.
+- **Strict Type Safety**: Centralized TypeScript interfaces inferred from Zod schemas.
 
 ## Tech Stack
-- **Framework:** Next.js 16 (App Router)
-- **Language:** TypeScript (Strict Mode)
-- **Styling:** Tailwind CSS
-- **Validation:** Zod
-- **Logging:** Pino
-- **Testing:** Vitest + React Testing Library
-- **Linting:** ESLint + Prettier
-- **Git Hooks:** Husky + lint-staged
 
-## Architecture Principles
-This project adheres to the following core principles as defined in the `ARCHITECTURE-BLUEPRINT.md`:
-- **Single Responsibility Principle (SRP):** Components, hooks, and utilities are decoupled and modular.
-- **Event Sourcing:** State transitions are managed as an append-only event log.
-- **Flat Entity Normalization:** Normalizing complex nested data for performance.
-- **Human-in-the-Loop (HITL):** Explicit boundaries for human intervention mid-execution.
+- **Framework**: Next.js 16 (App Router)
+- **State Management**: Zustand
+- **Real-time Data**: Server-Sent Events (SSE)
+- **Graph Layout**: Dagre
+- **Validation**: Zod
+- **Styling**: Tailwind CSS
+- **Testing**: Vitest, React Testing Library, Cypress
 
 ## Getting Started
 
 ### Installation
+
 ```bash
 npm install
 ```
 
-### Development
+### Running Development Server
+
 ```bash
 npm run dev
 ```
 
-### Testing
-```bash
-# Run tests once
-npm run test
+### Running Tests
 
-# Run tests in watch mode
-npm run test:watch
-```
+- **Unit/Integration Tests**: `npm test`
+- **E2E Tests**: `npm run e2e`
+- **Type Checking**: `npm run type-check`
 
-### Linting & Type Checking
-```bash
-# Linting
-npm run lint
+## Architecture Overview
 
-# Type checking
-npm run type-check
-```
+- **`src/app`**: Next.js App Router pages and API routes (including the SSE mock stream).
+- **`src/components`**: Modular UI components following SRP (ExecutionGraph, NodeCard, Edges, etc.).
+- **`src/hooks`**: Specialized hooks for state orchestration, events, and layout.
+- **`src/store`**: Centralized Zustand store for execution graph state.
+- **`src/types`**: Centralized domain-driven type definitions.
+- **`src/utils`**: Utility functions for topological sorting, error handling, and logging.
 
-## Directory Structure
-- `src/app`: Next.js App Router pages and layouts.
-- `src/components`: UI components (presentational).
-- `src/hooks`: Custom React hooks for business logic.
-- `src/utils`: Helper functions and utilities.
-- `src/types`: Centralized TypeScript interfaces.
-- `src/schemas`: Zod validation schemas.
-- `src/constants.ts`: Centralized constants and environment variables.
-- `src/__mocks__`: Mock data for testing.
+## Core Concepts
+
+### Approval Fence
+When an agent reaches a step requiring human review, the node status moves to `LOCKED`. The UI renders an `ApprovalFence` overlay, which prevents further automated progress until the user explicitly clicks "Approve" or "Reject".
+
+### Dependency Flow
+Nodes are automatically calculated as `blocked` or `unblocked` based on the status of their parent nodes. This ensures that agents only execute tasks when all prerequisite data and approvals are ready.
+
+## Development Rules
+
+This project follows strict engineering standards:
+- **SRP**: Single Responsibility Principle for all modules.
+- **TDD**: Full testing pyramid (Unit, Integration, E2E).
+- **Observability**: Structured logging via Pino.
+- **Type Safety**: Source-of-truth Zod schemas and centralized types.
+
+For detailed development instructions and AI context, see [GEMINI.md](./GEMINI.md).

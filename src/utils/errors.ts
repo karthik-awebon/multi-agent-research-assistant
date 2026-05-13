@@ -1,8 +1,10 @@
 import { ERROR_CODES } from '@/constants';
+import { ApiResponseError } from '../types';
 
 /**
  * Standardized application error class.
  */
+
 export class AppError extends Error {
   public readonly code: keyof typeof ERROR_CODES;
   public readonly statusCode: number;
@@ -26,15 +28,9 @@ export class AppError extends Error {
 /**
  * Standardized API error response format.
  */
-export interface ApiResponseError {
-  error: {
-    message: string;
-    code: string;
-    details?: unknown;
-  };
-}
 
 export const formatErrorResponse = (error: unknown): ApiResponseError => {
+
   if (error instanceof AppError) {
     return {
       error: {

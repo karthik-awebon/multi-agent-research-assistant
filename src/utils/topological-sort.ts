@@ -1,11 +1,7 @@
-import { ExecutionGraphState, ExecutionNode } from '../schemas/execution-graph';
-
-export interface TopologicalInfo {
-  unblockedNodes: ExecutionNode[];
-  blockedNodes: ExecutionNode[];
-}
+import { ExecutionGraphState, ExecutionNode, TopologicalInfo } from '../types';
 
 export function computeTopologicalState(state: ExecutionGraphState): TopologicalInfo {
+
   const { nodes, edges } = state;
   const unblockedNodes: ExecutionNode[] = [];
   const blockedNodes: ExecutionNode[] = [];

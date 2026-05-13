@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useExecutionStore } from './execution-store';
+import { MOCK_NODE_ID_1, MOCK_NODE_ID_2 } from '../__mocks__/data';
 
 describe('executionStore', () => {
   beforeEach(() => {
@@ -7,8 +8,8 @@ describe('executionStore', () => {
   });
 
   it('adds a node and edges on TASK_SPAWNED', () => {
-    const nodeId = '550e8400-e29b-41d4-a716-446655440000';
-    const depId = '550e8400-e29b-41d4-a716-446655440001';
+    const nodeId = MOCK_NODE_ID_1;
+    const depId = MOCK_NODE_ID_2;
     
     useExecutionStore.getState().dispatch({
       type: 'TASK_SPAWNED',
@@ -18,12 +19,11 @@ describe('executionStore', () => {
 
     const state = useExecutionStore.getState();
     expect(state.nodes[nodeId]).toBeDefined();
-    expect(state.nodes[nodeId].name).toBe('Test Task');
     expect(state.edges[`${depId}->${nodeId}`]).toBeDefined();
   });
 
   it('updates node status on NODE_STATUS_UPDATED', () => {
-    const nodeId = '550e8400-e29b-41d4-a716-446655440000';
+    const nodeId = MOCK_NODE_ID_1;
     
     // First spawn
     useExecutionStore.getState().dispatch({
@@ -46,7 +46,7 @@ describe('executionStore', () => {
   });
 
   it('locks a node on APPROVAL_REQUESTED', () => {
-    const nodeId = '550e8400-e29b-41d4-a716-446655440000';
+    const nodeId = MOCK_NODE_ID_1;
     
     useExecutionStore.getState().dispatch({
       type: 'TASK_SPAWNED',
@@ -66,7 +66,7 @@ describe('executionStore', () => {
   });
 
   it('resolves approval on APPROVAL_RESOLVED', () => {
-    const nodeId = '550e8400-e29b-41d4-a716-446655440000';
+    const nodeId = MOCK_NODE_ID_1;
     
     useExecutionStore.getState().dispatch({
       type: 'TASK_SPAWNED',

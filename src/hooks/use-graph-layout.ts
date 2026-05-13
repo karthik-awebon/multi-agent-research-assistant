@@ -1,42 +1,26 @@
 import { useMemo } from 'react';
 import dagre from 'dagre';
-import { ExecutionGraphState } from '../schemas/execution-graph';
-
-export interface LayoutNode {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface LayoutEdge {
-  id: string;
-  source: string;
-  target: string;
-  points: { x: number; y: number }[];
-}
-
-export interface GraphLayout {
-  nodes: LayoutNode[];
-  edges: LayoutEdge[];
-  width: number;
-  height: number;
-}
-
-const NODE_WIDTH = 250;
-const NODE_HEIGHT = 100;
+import { ExecutionGraphState, LayoutNode, LayoutEdge, GraphLayout } from '../types';
+import { GRAPH_CONFIG } from '../constants';
+import { logger } from '../utils/logger';
 
 export function useGraphLayout(state: ExecutionGraphState): GraphLayout {
   return useMemo(() => {
+    const nodeCount = Object.keys(state.nodes).length;
+    if (nodeCount === 0) return { nodes: [], edges: [], width: 0, height: 0 };
+
+    logger.debug({ nodeCount, edgeCount: Object.keys(state.edges).length }, 'Computing graph layout');
+    const startTime = performance.now();
+
     const g = new dagre.graphlib.Graph();
-    g.setGraph({ rankdir: 'TB', marginx: 40, marginy: 40, nodesep: 60, ranksep: 100 });
+    g.setGraph(GRAPH_CONFIG.LAYOUT);
     g.setDefaultEdgeLabel(() => ({}));
 
     // Add nodes to layout engine
     Object.values(state.nodes).forEach((node) => {
-      g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+      g.setNode(node.id, { width: GRAPH_CONFIG.NODE_WIDTH, height: GRAPH_CONFIG.NODE_HEIGHT });
     });
+
 
     // Add edges to layout engine
     Object.values(state.edges).forEach((edge) => {
@@ -73,11 +57,17 @@ export function useGraphLayout(state: ExecutionGraphState): GraphLayout {
 
     const graphLabel = g.graph();
 
+    const width = graphLabel.width && graphLabel.width !== -Infinity ? graphLabel.width : 0;
+    const height = graphLabel.height && graphLabel.height !== -Infinity ? graphLabel.height : 0;
+
+    const duration = performance.now() - startTime;
+    logger.debug({ duration: `${duration.toFixed(2)}ms`, width, height }, 'Layout computation complete');
+
     return {
       nodes: layoutNodes,
       edges: layoutEdges,
-      width: graphLabel.width || 0,
-      height: graphLabel.height || 0,
+      width,
+      height,
     };
   }, [state.nodes, state.edges]);
 }

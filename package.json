@@ -10,6 +10,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "type-check": "tsc --noEmit",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "e2e": "start-server-and-test dev http://localhost:3000 cypress:run",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -42,6 +45,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
+    "cypress": "^15.15.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "eslint-config-prettier": "^10.1.8",
@@ -50,6 +54,7 @@
     "jsdom": "^29.1.1",
     "lint-staged": "^15.2.0",
     "prettier": "^3.8.3",
+    "start-server-and-test": "^3.0.5",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.6"

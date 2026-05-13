@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { AppError } from '@/utils/errors';
+import { ERROR_CODES } from '@/constants';
 
 describe('AppError', () => {
   it('should create an error with correct properties', () => {
     const message = 'Test error message';
-    const code = 'VALIDATION_ERROR';
+    const code = ERROR_CODES.VALIDATION_ERROR;
     const statusCode = 400;
     const details = { field: 'email' };
 
@@ -21,7 +22,7 @@ describe('AppError', () => {
     const message = 'Default error';
     const error = new AppError(message);
 
-    expect(error.code).toBe('INTERNAL_SERVER_ERROR');
+    expect(error.code).toBe(ERROR_CODES.INTERNAL_SERVER_ERROR);
     expect(error.statusCode).toBe(500);
   });
 });

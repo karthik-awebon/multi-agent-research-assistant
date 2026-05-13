@@ -1,9 +1,8 @@
 'use client';
 
-import { ExecutionNode } from '../schemas/execution-graph';
-import { LayoutNode } from '../hooks/use-graph-layout';
-import { Loader2, CheckCircle2, XCircle, Lock, Clock } from 'lucide-react';
+import { ExecutionNode, LayoutNode } from '../types';
 import { ApprovalFence } from './ApprovalFence';
+import { useNodeStatus } from '../hooks/use-node-status';
 
 interface ExecutionNodeCardProps {
   node: ExecutionNode;
@@ -11,48 +10,15 @@ interface ExecutionNodeCardProps {
   isBlocked: boolean;
 }
 
+/**
+ * Component to render an individual execution node card with status indicators.
+ */
 export function ExecutionNodeCard({ node, layout, isBlocked }: ExecutionNodeCardProps) {
+  const config = useNodeStatus(node, isBlocked);
+
   // Center Dagre coords (x,y is center, need to convert to top-left)
   const left = layout.x - layout.width / 2;
   const top = layout.y - layout.height / 2;
-
-  const getStatusConfig = () => {
-    switch (node.status) {
-      case 'RUNNING':
-        return {
-          icon: <Loader2 className="w-5 h-5 animate-spin text-blue-500" />,
-          borderColor: 'border-blue-500',
-          bgColor: 'bg-blue-500/10',
-        };
-      case 'COMPLETED':
-        return {
-          icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
-          borderColor: 'border-emerald-500',
-          bgColor: 'bg-emerald-500/10',
-        };
-      case 'FAILED':
-        return {
-          icon: <XCircle className="w-5 h-5 text-rose-500" />,
-          borderColor: 'border-rose-500',
-          bgColor: 'bg-rose-500/10',
-        };
-      case 'LOCKED':
-        return {
-          icon: <Lock className="w-5 h-5 text-amber-500" />,
-          borderColor: 'border-amber-500',
-          bgColor: 'bg-amber-500/10',
-        };
-      case 'PENDING':
-      default:
-        return {
-          icon: <Clock className="w-5 h-5 text-slate-400" />,
-          borderColor: isBlocked ? 'border-slate-800' : 'border-slate-500',
-          bgColor: isBlocked ? 'bg-slate-900/50' : 'bg-slate-800',
-        };
-    }
-  };
-
-  const config = getStatusConfig();
 
   return (
     <div
@@ -71,11 +37,11 @@ export function ExecutionNodeCard({ node, layout, isBlocked }: ExecutionNodeCard
         </span>
         {config.icon}
       </div>
-      
+
       <h3 className="font-semibold text-slate-100 truncate" title={node.name}>
         {node.name}
       </h3>
-      
+
       {node.status === 'LOCKED' && <ApprovalFence node={node} />}
     </div>
   );
