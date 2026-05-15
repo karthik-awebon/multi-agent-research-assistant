@@ -5,17 +5,21 @@ import { useApprovalAction } from '../hooks/use-approval-action';
 
 interface ApprovalFenceProps {
   node: ExecutionNode;
+  sessionId: string;
 }
 
-/**
- * Component to provide a Human-in-the-loop (HITL) approval interface.
- * Prevents further execution until an explicit action is taken.
- */
-export function ApprovalFence({ node }: ApprovalFenceProps) {
-  const { approve, reject } = useApprovalAction(node.id);
+export function ApprovalFence({ node, sessionId }: ApprovalFenceProps) {
+  const { approve, reject } = useApprovalAction(node.id, sessionId);
+
+  const payload = node.payload as Record<string, unknown> | undefined;
 
   return (
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/80 rounded-xl backdrop-blur-sm p-4">
+      {typeof payload?.question === 'string' && (
+        <p className="text-xs text-amber-300 mb-2 text-center leading-snug">
+          {payload.question}
+        </p>
+      )}
       <p className="text-xs text-amber-400 font-medium mb-3 text-center">
         Human Approval Required
       </p>

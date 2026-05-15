@@ -2,17 +2,24 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useExecutionEvents } from './use-execution-events';
 import { useExecutionStore } from '../store/execution-store';
+import { AgentEvent } from '../types';
 import { MOCK_EVENTS } from '../__mocks__/data';
 
+interface MockEventSourceInstance {
+  close: ReturnType<typeof vi.fn>;
+  onmessage: ((event: { data: string }) => void) | null;
+  onerror: ((event: Event) => void) | null;
+}
+
 describe('useExecutionEvents', () => {
-  let instances: any[] = [];
+  let instances: MockEventSourceInstance[] = [];
 
   beforeEach(() => {
     useExecutionStore.getState().reset();
     vi.clearAllMocks();
     instances = [];
 
-    const MockEventSource = vi.fn().mockImplementation(function (this: any) {
+    const MockEventSource = vi.fn().mockImplementation(function (this: MockEventSourceInstance) {
       this.close = vi.fn();
       this.onmessage = null;
       this.onerror = null;
@@ -23,19 +30,19 @@ describe('useExecutionEvents', () => {
   });
 
   it('dispatches parsed event on message', () => {
-    let lastEvent: any = null;
+    let lastEvent: AgentEvent | null = null;
     const originalDispatch = useExecutionStore.getState().dispatch;
-    useExecutionStore.setState({ 
+    useExecutionStore.setState({
       dispatch: (event) => {
         lastEvent = event;
         originalDispatch(event);
-      }
+      },
     });
 
-    renderHook(() => useExecutionEvents('/api/test'));
+    renderHook(() => useExecutionEvents('test-session-id'));
 
     const eventData = JSON.stringify(MOCK_EVENTS[0]);
-    
+
     if (instances[0].onmessage) {
       instances[0].onmessage({ data: eventData });
     }
@@ -44,7 +51,7 @@ describe('useExecutionEvents', () => {
   });
 
   it('closes connection on [DONE] message', () => {
-    renderHook(() => useExecutionEvents('/api/test'));
+    renderHook(() => useExecutionEvents('test-session-id'));
 
     if (instances[0].onmessage) {
       instances[0].onmessage({ data: '[DONE]' });
@@ -53,15 +60,20 @@ describe('useExecutionEvents', () => {
     expect(instances[0].close).toHaveBeenCalled();
   });
 
-  it('handles parse error gracefully', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    renderHook(() => useExecutionEvents('/api/test'));
+  it('handles parse error gracefully without crashing', () => {
+    renderHook(() => useExecutionEvents('test-session-id'));
 
-    if (instances[0].onmessage) {
-      instances[0].onmessage({ data: 'invalid-json' });
-    }
+    expect(() => {
+      if (instances[0].onmessage) {
+        instances[0].onmessage({ data: 'invalid-json' });
+      }
+    }).not.toThrow();
 
-    expect(consoleSpy).toHaveBeenCalledWith('Failed to parse SSE event data', expect.any(Error));
-    consoleSpy.mockRestore();
+    expect(Object.keys(useExecutionStore.getState().nodes)).toHaveLength(0);
+  });
+
+  it('does not open EventSource when sessionId is null', () => {
+    renderHook(() => useExecutionEvents(null));
+    expect(instances).toHaveLength(0);
   });
 });

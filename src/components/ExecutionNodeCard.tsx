@@ -8,15 +8,12 @@ interface ExecutionNodeCardProps {
   node: ExecutionNode;
   layout: LayoutNode;
   isBlocked: boolean;
+  sessionId: string;
 }
 
-/**
- * Component to render an individual execution node card with status indicators.
- */
-export function ExecutionNodeCard({ node, layout, isBlocked }: ExecutionNodeCardProps) {
+export function ExecutionNodeCard({ node, layout, isBlocked, sessionId }: ExecutionNodeCardProps) {
   const config = useNodeStatus(node, isBlocked);
 
-  // Center Dagre coords (x,y is center, need to convert to top-left)
   const left = layout.x - layout.width / 2;
   const top = layout.y - layout.height / 2;
 
@@ -42,7 +39,7 @@ export function ExecutionNodeCard({ node, layout, isBlocked }: ExecutionNodeCard
         {node.name}
       </h3>
 
-      {node.status === 'LOCKED' && <ApprovalFence node={node} />}
+      {node.status === 'LOCKED' && <ApprovalFence node={node} sessionId={sessionId} />}
     </div>
   );
 }

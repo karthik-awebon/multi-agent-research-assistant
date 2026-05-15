@@ -8,6 +8,8 @@ export const APP_CONFIG = {
   API_TIMEOUT: 30000,
   ENDPOINTS: {
     EVENTS: '/api/events',
+    RESEARCH: '/api/research',
+    APPROVE: '/api/approve',
   },
   MOCK_DELAY: 1500,
 } as const;

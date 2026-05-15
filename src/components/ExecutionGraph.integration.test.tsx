@@ -1,18 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { ExecutionGraph } from './ExecutionGraph';
 import { useExecutionStore } from '../store/execution-store';
 import { MOCK_NODE_ID_1, MOCK_NODE_ID_2 } from '../__mocks__/data';
 
+const MOCK_SESSION_ID = 'test-session-id';
+
 describe('ExecutionGraph Integration', () => {
-  let instances: any[] = [];
+  interface MockEventSourceInstance {
+    close: ReturnType<typeof vi.fn>;
+    onmessage: ((event: { data: string }) => void) | null;
+    onerror: ((event: Event) => void) | null;
+  }
+
+  let instances: MockEventSourceInstance[] = [];
 
   beforeEach(() => {
     useExecutionStore.getState().reset();
     vi.clearAllMocks();
     instances = [];
 
-    const MockEventSource = vi.fn().mockImplementation(function (this: any) {
+    const MockEventSource = vi.fn().mockImplementation(function (this: MockEventSourceInstance) {
       this.close = vi.fn();
       this.onmessage = null;
       this.onerror = null;
@@ -20,10 +28,11 @@ describe('ExecutionGraph Integration', () => {
     });
 
     vi.stubGlobal('EventSource', MockEventSource);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }));
   });
 
   it('coordinates full execution flow: spawning, status updates, and topological unblocking', async () => {
-    render(<ExecutionGraph />);
+    render(<ExecutionGraph sessionId={MOCK_SESSION_ID} />);
 
     // 1. Spawn Node A (Root)
     const eventA = {
@@ -31,7 +40,7 @@ describe('ExecutionGraph Integration', () => {
       node: { id: MOCK_NODE_ID_1, type: 'TASK', status: 'PENDING', name: 'Task A' },
       dependencies: [],
     };
-    
+
     await act(async () => {
       if (instances[0]?.onmessage) {
         instances[0].onmessage({ data: JSON.stringify(eventA) });
@@ -77,7 +86,7 @@ describe('ExecutionGraph Integration', () => {
   });
 
   it('handles Human-in-the-loop (HITL) approval integration', async () => {
-    render(<ExecutionGraph />);
+    render(<ExecutionGraph sessionId={MOCK_SESSION_ID} />);
 
     const approvalNodeId = 'approval-123';
     const spawnApproval = {

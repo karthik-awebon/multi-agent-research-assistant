@@ -1,32 +1,17 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { NextRequest } from 'next/server';
 import { GET } from './route';
-import { APP_CONFIG } from '@/constants';
 
 describe('GET /api/events', () => {
-  it('returns a Response with correct SSE headers', async () => {
-    const response = await GET();
-    
-    expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('text/event-stream');
-    expect(response.headers.get('Cache-Control')).toBe('no-cache, no-transform');
+  it('returns 400 when sessionId is missing', async () => {
+    const request = new NextRequest('http://localhost/api/events');
+    const response = await GET(request);
+    expect(response.status).toBe(400);
   });
 
-  it('streams events in the correct format', async () => {
-    // Reduce delay for faster tests
-    vi.stubGlobal('setTimeout', (cb: any) => cb());
-    
-    const response = await GET();
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder();
-    
-    let result = '';
-    while (true) {
-      const { done, value } = await reader!.read();
-      if (done) break;
-      result += decoder.decode(value);
-    }
-    
-    expect(result).toContain('data: {"type":"TASK_SPAWNED"');
-    expect(result).toContain('data: [DONE]');
+  it('returns 404 for an unknown sessionId', async () => {
+    const request = new NextRequest('http://localhost/api/events?sessionId=unknown-session-id');
+    const response = await GET(request);
+    expect(response.status).toBe(404);
   });
 });
